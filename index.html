@@ -151,6 +151,12 @@
 
       const keywords = query.split(' ');
       const filteredData = data.filter(row => {
+        const productName = row['Product Name'];
+        // Filter out product names starting with "x" or "X"
+        if (productName && /^[xX]/.test(productName)) {
+          return false;
+        }
+
         const searchFields = [row['Product Name'], row['Unit'], row['Company']].map(field => field ? field.toLowerCase() : '');
         return keywords.every(keyword => searchFields.some(field => field.includes(keyword)));
       });
