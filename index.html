@@ -113,7 +113,7 @@
       });
 
     document.getElementById('searchInput').addEventListener('input', function () {
-      const query = this.value.toLowerCase();
+      const query = this.value.trim().toLowerCase();
       const placeholder = document.querySelector('.placeholder');
       const table = document.getElementById('dataTable');
       
@@ -125,12 +125,10 @@
       }
 
       const filteredData = data.filter(row => {
-        return (
-          (row['Product Name'] || '').toLowerCase().includes(query) ||
-          (row['Unit'] || '').toLowerCase().includes(query) ||
-          (row['Company'] || '').toLowerCase().includes(query)
-        );
+        const searchFields = [row['Product Name'], row['Unit'], row['Company']].map(field => field ? field.toLowerCase() : '');
+        return searchFields.some(field => field.includes(query));
       });
+
       placeholder.style.display = filteredData.length === 0 ? 'block' : 'none';
       placeholder.textContent = filteredData.length === 0 ? 'No results found 😕' : '';
       table.style.display = filteredData.length > 0 ? 'table' : 'none';
@@ -161,10 +159,11 @@
     }
 
     function highlightMatches(filteredData, query) {
+      const regex = new RegExp(query, 'gi');
       filteredData.forEach(row => {
         ['Product Name', 'Unit', 'Company'].forEach(key => {
           if (row[key]) {
-            row[key] = row[key].replace(new RegExp(query, 'gi'), match => `<span class='highlight'>${match}</span>`);
+            row[key] = row[key].replace(regex, match => `<span class='highlight'>${match}</span>`);
           }
         });
       });
