@@ -17,15 +17,16 @@
       padding: 20px;
       max-width: 1200px;
       margin: auto;
+      text-align: center;
     }
     h1 {
       text-align: center;
       color: #4a90e2;
+      font-size: 2.5em;
+      margin-bottom: 20px;
     }
     .search-bar {
       margin: 20px 0;
-      display: flex;
-      justify-content: center;
     }
     input[type="text"] {
       width: 300px;
@@ -33,19 +34,6 @@
       font-size: 14px;
       border: 1px solid #ccc;
       border-radius: 5px;
-    }
-    button {
-      padding: 10px 15px;
-      margin-left: 10px;
-      font-size: 14px;
-      border: none;
-      border-radius: 5px;
-      background-color: #4a90e2;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #357ab7;
     }
     table {
       width: 100%;
@@ -71,24 +59,30 @@
     .cost-value {
       color: red;
     }
+    .placeholder {
+      margin-top: 50px;
+      font-size: 1.2em;
+      color: #777;
+    }
+    .emoji-decor {
+      font-size: 2em;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Project Neerja</h1>
+    <h1>✨ Project Neerja ✨</h1>
+    <div class="emoji-decor">💊📊🔍</div>
     <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="Search...">
-      <button onclick="searchTable()">Search</button>
-      <button onclick="resetTable()">Reset</button>
+      <input type="text" id="searchInput" placeholder="Type to search...">
     </div>
-    <table id="dataTable">
+    <div class="placeholder">Waiting for input... 🤔</div>
+    <table id="dataTable" style="display: none;">
       <thead>
         <tr>
           <th>Product Name</th>
           <th>Unit</th>
           <th>Company</th>
-          <th>Purc. Scheme Deal</th>
-          <th>Purc. Scheme Free</th>
           <th>Purchase Price</th>
           <th>Cost Price</th>
           <th>Sales Price</th>
@@ -114,10 +108,36 @@
           const sheetName = workbook.SheetNames[0];
           const sheet = workbook.Sheets[sheetName];
           data = XLSX.utils.sheet_to_json(sheet);
-          renderTable(data);
         };
         reader.readAsBinaryString(file);
       });
+
+    document.getElementById('searchInput').addEventListener('input', function () {
+      const query = this.value.toLowerCase();
+      const placeholder = document.querySelector('.placeholder');
+      const table = document.getElementById('dataTable');
+      
+      if (query.length < 3) {
+        placeholder.style.display = 'block';
+        placeholder.textContent = "Waiting for input... 🤔";
+        table.style.display = 'none';
+        return;
+      }
+
+      const filteredData = data.filter(row => {
+        return (
+          (row['Product Name'] || '').toLowerCase().includes(query) ||
+          (row['Unit'] || '').toLowerCase().includes(query) ||
+          (row['Company'] || '').toLowerCase().includes(query)
+        );
+      });
+      placeholder.style.display = filteredData.length === 0 ? 'block' : 'none';
+      placeholder.textContent = filteredData.length === 0 ? 'No results found 😕' : '';
+      table.style.display = filteredData.length > 0 ? 'table' : 'none';
+
+      highlightMatches(filteredData, query);
+      renderTable(filteredData);
+    });
 
     function renderTable(data) {
       const tbody = document.querySelector('#dataTable tbody');
@@ -129,8 +149,6 @@
           <td>${row['Product Name'] || ''}</td>
           <td>${row['Unit'] || ''}</td>
           <td>${row['Company'] || ''}</td>
-          <td>${row['Purc.Scheme Deal'] || ''}</td>
-          <td>${row['Purc.Scheme Free'] || ''}</td>
           <td>${parseFloat(row['Purchase Price'] || 0).toFixed(2)}</td>
           <td class="cost-value">${parseFloat(row['Cost Price'] || 0).toFixed(2)}</td>
           <td>${parseFloat(row['Sales Price'] || 0).toFixed(2)}</td>
@@ -142,19 +160,6 @@
       });
     }
 
-    function searchTable() {
-      const query = document.getElementById('searchInput').value.toLowerCase();
-      const filteredData = data.filter(row => {
-        return (
-          (row['Product Name'] || '').toLowerCase().includes(query) ||
-          (row['Unit'] || '').toLowerCase().includes(query) ||
-          (row['Company'] || '').toLowerCase().includes(query)
-        );
-      });
-      highlightMatches(filteredData, query);
-      renderTable(filteredData);
-    }
-
     function highlightMatches(filteredData, query) {
       filteredData.forEach(row => {
         ['Product Name', 'Unit', 'Company'].forEach(key => {
@@ -163,11 +168,6 @@
           }
         });
       });
-    }
-
-    function resetTable() {
-      document.getElementById('searchInput').value = '';
-      renderTable(data);
     }
   </script>
 </body>
