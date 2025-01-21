@@ -98,7 +98,6 @@
       <thead>
         <tr>
           <th>Product Name 💊</th>
-          <th>Unit 📦</th>
           <th>Company 🏢</th>
           <th>Purchase Price 💰</th>
           <th>Cost Price 🛒</th>
@@ -157,7 +156,7 @@
           return false;
         }
 
-        const searchFields = [row['Product Name'], row['Unit'], row['Company']].map(field => field ? field.toLowerCase() : '');
+        const searchFields = [row['Product Name'], row['Company']].map(field => field ? field.toLowerCase() : '');
         return keywords.every(keyword => searchFields.some(field => field.includes(keyword)));
       });
 
@@ -188,21 +187,18 @@
 
         // Iterate through each keyword in the search query
         let productName = row['Product Name'] || '';
-        let unit = row['Unit'] || '';
         let company = row['Company'] || '';
 
         // Highlight each keyword in the fields
         keywords.forEach(keyword => {
           const regex = new RegExp(keyword, 'gi');
           productName = productName.replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`);
-          unit = unit.replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`);
           company = company.replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`);
         });
 
         // Update the row with the highlighted content
         tr.innerHTML = `
           <td>${productName}</td>
-          <td>${unit}</td>
           <td>${company}</td>
           <td>${formatNumberIndian(parseFloat(row['Purchase Price'] || 0).toFixed(2))}</td>
           <td class="cost-value">${formatNumberIndian(parseFloat(row['Cost Price'] || 0).toFixed(2))}</td>
