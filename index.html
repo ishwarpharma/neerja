@@ -15,7 +15,7 @@
     }
     .container {
       padding: 20px;
-      max-width: 1200px;
+      max-width: 100%;
       margin: auto;
       text-align: center;
     }
@@ -36,7 +36,8 @@
       border-radius: 5px;
     }
     button {
-      padding: 10px 15px;
+      margin-left: 10px;
+      padding: 10px;
       font-size: 14px;
       background-color: #4a90e2;
       color: white;
@@ -45,7 +46,7 @@
       cursor: pointer;
     }
     button:hover {
-      background-color: #357abd;
+      background-color: #357ab8;
     }
     table {
       width: 100%;
@@ -56,15 +57,11 @@
       text-align: center;
       padding: 10px;
       border: 1px solid #ddd;
-      font-size: 10px;
+      font-size: 12px;
       font-weight: bold;
     }
     th {
-      background-color: #f4b084;
-      color: #333;
-    }
-    th span {
-      margin-left: 5px;
+      background-color: #d1e7fd;
     }
     tr:nth-child(even) {
       background-color: #f9f9f9;
@@ -100,15 +97,15 @@
     <table id="dataTable" style="display: none;">
       <thead>
         <tr>
-          <th>Product Name <span>📦</span></th>
-          <th>Unit <span>📏</span></th>
-          <th>Company <span>🏢</span></th>
-          <th>Purchase Price <span>💰</span></th>
-          <th>Cost Price <span>📉</span></th>
-          <th>Sales Price <span>📈</span></th>
-          <th>M.R.P. <span>🏷</span></th>
-          <th>Current Stock <span>📦</span></th>
-          <th>Value <span>💵</span></th>
+          <th>Product Name 💊</th>
+          <th>Unit 📦</th>
+          <th>Company 🏢</th>
+          <th>Purchase Price 💰</th>
+          <th>Cost Price 🛒</th>
+          <th>Sales Price 📈</th>
+          <th>M.R.P. 🏷</th>
+          <th>Current Stock 📋</th>
+          <th>Value 🪙</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -132,21 +129,30 @@
         reader.readAsBinaryString(file);
       });
 
+    function formatNumberIndian(num) {
+      const [integer, decimal] = num.toString().split('.');
+      const lastThree = integer.slice(-3);
+      const otherNumbers = integer.slice(0, -3);
+      const formattedInteger = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + (otherNumbers ? "," : "") + lastThree;
+      return decimal ? formattedInteger + "." + decimal : formattedInteger;
+    }
+
     document.getElementById('searchInput').addEventListener('input', function () {
-      const query = this.value.trim().toLowerCase().split(/\s+/);
+      const query = this.value.trim().toLowerCase();
       const placeholder = document.querySelector('.placeholder');
       const table = document.getElementById('dataTable');
 
-      if (query.length === 0 || query[0] === '') {
+      if (query === '') {
         placeholder.style.display = 'block';
         placeholder.textContent = "Waiting for input... 🤔";
         table.style.display = 'none';
         return;
       }
 
+      const keywords = query.split(' ');
       const filteredData = data.filter(row => {
         const searchFields = [row['Product Name'], row['Unit'], row['Company']].map(field => field ? field.toLowerCase() : '');
-        return query.every(word => searchFields.some(field => field.includes(word)));
+        return keywords.every(keyword => searchFields.some(field => field.includes(keyword)));
       });
 
       placeholder.style.display = filteredData.length === 0 ? 'block' : 'none';
@@ -158,18 +164,16 @@
 
     document.getElementById('resetButton').addEventListener('click', function () {
       document.getElementById('searchInput').value = '';
-      const placeholder = document.querySelector('.placeholder');
-      const table = document.getElementById('dataTable');
-      placeholder.style.display = 'block';
-      placeholder.textContent = "Waiting for input... 🤔";
-      table.style.display = 'none';
+      document.querySelector('.placeholder').style.display = 'block';
+      document.querySelector('.placeholder').textContent = "Waiting for input... 🤔";
+      document.getElementById('dataTable').style.display = 'none';
     });
 
     function renderTable(data, query) {
       const tbody = document.querySelector('#dataTable tbody');
       tbody.innerHTML = '';
 
-      const regex = new RegExp(query.join('|'), 'gi');
+      const regex = new RegExp(query, 'gi');
 
       data.forEach((row, index) => {
         const tr = document.createElement('tr');
@@ -177,22 +181,15 @@
           <td>${(row['Product Name'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
           <td>${(row['Unit'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
           <td>${(row['Company'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
-          <td>${formatIndianNumber(row['Purchase Price'])}</td>
-          <td class="cost-value">${formatIndianNumber(row['Cost Price'])}</td>
-          <td>${formatIndianNumber(row['Sales Price'])}</td>
-          <td>${formatIndianNumber(row['M.R.P.'])}</td>
-          <td>${formatIndianNumber(row['Current Stock'], 0)}</td>
-          <td>${formatIndianNumber(row['Value'], 0)}</td>
+          <td>${formatNumberIndian(parseFloat(row['Purchase Price'] || 0).toFixed(2))}</td>
+          <td class="cost-value">${formatNumberIndian(parseFloat(row['Cost Price'] || 0).toFixed(2))}</td>
+          <td>${formatNumberIndian(parseFloat(row['Sales Price'] || 0).toFixed(2))}</td>
+          <td>${formatNumberIndian(parseFloat(row['M.R.P.'] || 0).toFixed(2))}</td>
+          <td>${formatNumberIndian(parseInt(row['Current Stock'] || 0))}</td>
+          <td>${formatNumberIndian(parseInt(row['Value'] || 0))}</td>
         `;
         tbody.appendChild(tr);
       });
-    }
-
-    function formatIndianNumber(num, decimals = 2) {
-      if (!num || isNaN(num)) return '0';
-      const parts = parseFloat(num).toFixed(decimals).split('.');
-      parts[0] = parts[0].replace(/\B(?=(\d{2})+(?!\d))/g, ",");
-      return decimals === 0 ? parts[0] : parts.join('.');
     }
   </script>
 </body>
