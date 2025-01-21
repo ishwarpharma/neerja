@@ -173,14 +173,31 @@
       const tbody = document.querySelector('#dataTable tbody');
       tbody.innerHTML = '';
 
-      const regex = new RegExp(query, 'gi');
+      // Split the query into multiple words
+      const keywords = query.split(' ').filter(keyword => keyword.length > 0);
 
+      // For each row, highlight all matching keywords
       data.forEach((row, index) => {
         const tr = document.createElement('tr');
+
+        // Iterate through each keyword in the search query
+        let productName = row['Product Name'] || '';
+        let unit = row['Unit'] || '';
+        let company = row['Company'] || '';
+
+        // Highlight each keyword in the fields
+        keywords.forEach(keyword => {
+          const regex = new RegExp(keyword, 'gi');
+          productName = productName.replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`);
+          unit = unit.replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`);
+          company = company.replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`);
+        });
+
+        // Update the row with the highlighted content
         tr.innerHTML = `
-          <td>${(row['Product Name'] || '').replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`)}</td>
-          <td>${(row['Unit'] || '').replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`)}</td>
-          <td>${(row['Company'] || '').replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`)}</td>
+          <td>${productName}</td>
+          <td>${unit}</td>
+          <td>${company}</td>
           <td>${formatNumberIndian(parseFloat(row['Purchase Price'] || 0).toFixed(2))}</td>
           <td class="cost-value">${formatNumberIndian(parseFloat(row['Cost Price'] || 0).toFixed(2))}</td>
           <td>${formatNumberIndian(parseFloat(row['Sales Price'] || 0).toFixed(2))}</td>
