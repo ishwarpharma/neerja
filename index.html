@@ -124,30 +124,30 @@
         return;
       }
 
+      const queryWords = query.split(/\s+/);
+
       const filteredData = data.filter(row => {
         const searchFields = [row['Product Name'], row['Unit'], row['Company']].map(field => field ? field.toLowerCase() : '');
-        return searchFields.some(field => field.includes(query));
+        return queryWords.every(word => searchFields.some(field => field.includes(word)));
       });
 
       placeholder.style.display = filteredData.length === 0 ? 'block' : 'none';
       placeholder.textContent = filteredData.length === 0 ? 'No results found 😕' : '';
       table.style.display = filteredData.length > 0 ? 'table' : 'none';
 
-      renderTable(filteredData, query);
+      renderTable(filteredData, queryWords);
     });
 
-    function renderTable(data, query) {
+    function renderTable(data, queryWords) {
       const tbody = document.querySelector('#dataTable tbody');
       tbody.innerHTML = '';
-
-      const regex = new RegExp(query, 'gi');
 
       data.forEach((row, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${(row['Product Name'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
-          <td>${(row['Unit'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
-          <td>${(row['Company'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
+          <td>${highlightWords(row['Product Name'] || '', queryWords)}</td>
+          <td>${highlightWords(row['Unit'] || '', queryWords)}</td>
+          <td>${highlightWords(row['Company'] || '', queryWords)}</td>
           <td>${parseFloat(row['Purchase Price'] || 0).toFixed(2)}</td>
           <td class="cost-value">${parseFloat(row['Cost Price'] || 0).toFixed(2)}</td>
           <td>${parseFloat(row['Sales Price'] || 0).toFixed(2)}</td>
@@ -157,6 +157,11 @@
         `;
         tbody.appendChild(tr);
       });
+    }
+
+    function highlightWords(text, queryWords) {
+      const regex = new RegExp(`(${queryWords.join('|')})`, 'gi');
+      return text.replace(regex, match => `<span class='highlight'>${match}</span>`);
     }
   </script>
 </body>
