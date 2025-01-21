@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Neerja</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: Calibri, sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #4a90e2;
+    }
+    .search-bar {
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+    }
+    input[type="text"] {
+      width: 300px;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 15px;
+      margin-left: 10px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4a90e2;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #357ab7;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px;
+      border: 1px solid #ddd;
+      font-size: 10px;
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    tr:nth-child(odd) {
+      background-color: #ffffff;
+    }
+    .highlight {
+      background-color: yellow;
+    }
+    .cost-value {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Project Neerja</h1>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search...">
+      <button onclick="searchTable()">Search</button>
+      <button onclick="resetTable()">Reset</button>
+    </div>
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Product Name</th>
+          <th>Unit</th>
+          <th>Company</th>
+          <th>Purc. Scheme Deal</th>
+          <th>Purc. Scheme Free</th>
+          <th>Purchase Price</th>
+          <th>Cost Price</th>
+          <th>Sales Price</th>
+          <th>M.R.P.</th>
+          <th>Current Stock</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    let data = [];
+
+    // Load Excel file and parse it
+    fetch('stock.xlsx')
+      .then(response => response.blob())
+      .then(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const workbook = XLSX.read(e.target.result, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          data = XLSX.utils.sheet_to_json(sheet);
+          renderTable(data);
+        };
+        reader.readAsBinaryString(file);
+      });
+
+    function renderTable(data) {
+      const tbody = document.querySelector('#dataTable tbody');
+      tbody.innerHTML = '';
+
+      data.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row['Product Name'] || ''}</td>
+          <td>${row['Unit'] || ''}</td>
+          <td>${row['Company'] || ''}</td>
+          <td>${row['Purc.Scheme Deal'] || ''}</td>
+          <td>${row['Purc.Scheme Free'] || ''}</td>
+          <td>${parseFloat(row['Purchase Price'] || 0).toFixed(2)}</td>
+          <td class="cost-value">${parseFloat(row['Cost Price'] || 0).toFixed(2)}</td>
+          <td>${parseFloat(row['Sales Price'] || 0).toFixed(2)}</td>
+          <td>${parseFloat(row['M.R.P.'] || 0).toFixed(2)}</td>
+          <td>${parseFloat(row['Current Stock'] || 0).toFixed(2)}</td>
+          <td>${parseFloat(row['Value'] || 0).toFixed(2)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function searchTable() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filteredData = data.filter(row => {
+        return (
+          (row['Product Name'] || '').toLowerCase().includes(query) ||
+          (row['Unit'] || '').toLowerCase().includes(query) ||
+          (row['Company'] || '').toLowerCase().includes(query)
+        );
+      });
+      highlightMatches(filteredData, query);
+      renderTable(filteredData);
+    }
+
+    function highlightMatches(filteredData, query) {
+      filteredData.forEach(row => {
+        ['Product Name', 'Unit', 'Company'].forEach(key => {
+          if (row[key]) {
+            row[key] = row[key].replace(new RegExp(query, 'gi'), match => `<span class='highlight'>${match}</span>`);
+          }
+        });
+      });
+    }
+
+    function resetTable() {
+      document.getElementById('searchInput').value = '';
+      renderTable(data);
+    }
+  </script>
+</body>
+</html>
