@@ -178,9 +178,9 @@
       data.forEach((row, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${(row['Product Name'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
-          <td>${(row['Unit'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
-          <td>${(row['Company'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
+          <td>${(row['Product Name'] || '').replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`)}</td>
+          <td>${(row['Unit'] || '').replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`)}</td>
+          <td>${(row['Company'] || '').replace(regex, match => `<span class='highlight' style='background-color: yellow;'>${match}</span>`)}</td>
           <td>${formatNumberIndian(parseFloat(row['Purchase Price'] || 0).toFixed(2))}</td>
           <td class="cost-value">${formatNumberIndian(parseFloat(row['Cost Price'] || 0).toFixed(2))}</td>
           <td>${formatNumberIndian(parseFloat(row['Sales Price'] || 0).toFixed(2))}</td>
