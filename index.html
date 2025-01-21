@@ -35,17 +35,36 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
+    button {
+      padding: 10px 15px;
+      font-size: 14px;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #357abd;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
     }
     th, td {
-      text-align: left;
+      text-align: center;
       padding: 10px;
       border: 1px solid #ddd;
       font-size: 10px;
       font-weight: bold;
+    }
+    th {
+      background-color: #f4b084;
+      color: #333;
+    }
+    th span {
+      margin-left: 5px;
     }
     tr:nth-child(even) {
       background-color: #f9f9f9;
@@ -75,20 +94,21 @@
     <div class="emoji-decor">💊📊🔍</div>
     <div class="search-bar">
       <input type="text" id="searchInput" placeholder="Type to search...">
+      <button id="resetButton">♻ Reset</button>
     </div>
     <div class="placeholder">Waiting for input... 🤔</div>
     <table id="dataTable" style="display: none;">
       <thead>
         <tr>
-          <th>Product Name</th>
-          <th>Unit</th>
-          <th>Company</th>
-          <th>Purchase Price</th>
-          <th>Cost Price</th>
-          <th>Sales Price</th>
-          <th>M.R.P.</th>
-          <th>Current Stock</th>
-          <th>Value</th>
+          <th>Product Name <span>📦</span></th>
+          <th>Unit <span>📏</span></th>
+          <th>Company <span>🏢</span></th>
+          <th>Purchase Price <span>💰</span></th>
+          <th>Cost Price <span>📉</span></th>
+          <th>Sales Price <span>📈</span></th>
+          <th>M.R.P. <span>🏷</span></th>
+          <th>Current Stock <span>📦</span></th>
+          <th>Value <span>💵</span></th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -113,55 +133,66 @@
       });
 
     document.getElementById('searchInput').addEventListener('input', function () {
-      const query = this.value.trim().toLowerCase();
+      const query = this.value.trim().toLowerCase().split(/\s+/);
       const placeholder = document.querySelector('.placeholder');
       const table = document.getElementById('dataTable');
 
-      if (query === '') {
+      if (query.length === 0 || query[0] === '') {
         placeholder.style.display = 'block';
         placeholder.textContent = "Waiting for input... 🤔";
         table.style.display = 'none';
         return;
       }
 
-      const queryWords = query.split(/\s+/);
-
       const filteredData = data.filter(row => {
         const searchFields = [row['Product Name'], row['Unit'], row['Company']].map(field => field ? field.toLowerCase() : '');
-        return queryWords.every(word => searchFields.some(field => field.includes(word)));
+        return query.every(word => searchFields.some(field => field.includes(word)));
       });
 
       placeholder.style.display = filteredData.length === 0 ? 'block' : 'none';
       placeholder.textContent = filteredData.length === 0 ? 'No results found 😕' : '';
       table.style.display = filteredData.length > 0 ? 'table' : 'none';
 
-      renderTable(filteredData, queryWords);
+      renderTable(filteredData, query);
     });
 
-    function renderTable(data, queryWords) {
+    document.getElementById('resetButton').addEventListener('click', function () {
+      document.getElementById('searchInput').value = '';
+      const placeholder = document.querySelector('.placeholder');
+      const table = document.getElementById('dataTable');
+      placeholder.style.display = 'block';
+      placeholder.textContent = "Waiting for input... 🤔";
+      table.style.display = 'none';
+    });
+
+    function renderTable(data, query) {
       const tbody = document.querySelector('#dataTable tbody');
       tbody.innerHTML = '';
+
+      const regex = new RegExp(query.join('|'), 'gi');
 
       data.forEach((row, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${highlightWords(row['Product Name'] || '', queryWords)}</td>
-          <td>${highlightWords(row['Unit'] || '', queryWords)}</td>
-          <td>${highlightWords(row['Company'] || '', queryWords)}</td>
-          <td>${parseFloat(row['Purchase Price'] || 0).toFixed(2)}</td>
-          <td class="cost-value">${parseFloat(row['Cost Price'] || 0).toFixed(2)}</td>
-          <td>${parseFloat(row['Sales Price'] || 0).toFixed(2)}</td>
-          <td>${parseFloat(row['M.R.P.'] || 0).toFixed(2)}</td>
-          <td>${parseFloat(row['Current Stock'] || 0).toFixed(2)}</td>
-          <td>${parseFloat(row['Value'] || 0).toFixed(2)}</td>
+          <td>${(row['Product Name'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
+          <td>${(row['Unit'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
+          <td>${(row['Company'] || '').replace(regex, match => `<span class='highlight'>${match}</span>`)}</td>
+          <td>${formatIndianNumber(row['Purchase Price'])}</td>
+          <td class="cost-value">${formatIndianNumber(row['Cost Price'])}</td>
+          <td>${formatIndianNumber(row['Sales Price'])}</td>
+          <td>${formatIndianNumber(row['M.R.P.'])}</td>
+          <td>${formatIndianNumber(row['Current Stock'], 0)}</td>
+          <td>${formatIndianNumber(row['Value'], 0)}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    function highlightWords(text, queryWords) {
-      const regex = new RegExp(`(${queryWords.join('|')})`, 'gi');
-      return text.replace(regex, match => `<span class='highlight'>${match}</span>`);
+    function formatIndianNumber(num, decimals = 2) {
+      if (!num || isNaN(num)) return '0';
+      const parts = parseFloat(num).toFixed(decimals).split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+      return decimals === 0 ? parts[0] : parts.join('.');
     }
   </script>
 </body>
